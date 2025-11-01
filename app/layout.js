@@ -1,6 +1,7 @@
 // app/layout.js
 import "./globals.css";
 import "@/utils/palette.css";
+import Header from "@/components/Header";
 
 export const metadata = {
   title: "Christmas List",
@@ -10,7 +11,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }

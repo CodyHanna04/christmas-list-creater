@@ -234,3 +234,218 @@ h1{
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+/* ---------- Home dashboard layout ---------- */
+.dashboard-grid{
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr; /* lists | create form */
+  gap: 18px;
+}
+@media (max-width: 900px){
+  .dashboard-grid{ grid-template-columns: 1fr; }
+}
+
+/* Lists grid + cards */
+.list-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.list-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--glow);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list-head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.list-title{ margin: 0; font-size: 1.1rem; }
+.list-slug{ font-size: .9rem; }
+
+/* Item preview rows inside each list card */
+.preview-items{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+.preview-row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.preview-name{
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-price{
+  font-variant-numeric: tabular-nums;
+  opacity: .95;
+}
+
+/* Re-use your chip color scheme */
+.preview-row .chip{ text-transform: none; }
+.preview-row .chip-available{ background: rgba(29,191,126,.08); border-color: var(--pine); color: #a9ffd9; }
+.preview-row .chip-reserved{ background: rgba(255,209,102,.1); border-color: var(--gold); color: #ffe7a8; }
+.preview-row .chip-purchased{ background: rgba(255,90,116,.12); border-color: var(--cran); color: #ffc2cc; }
+
+/* Card actions */
+.list-actions{
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* Empty state */
+.empty-state{
+  text-align: center;
+  padding: 28px 8px;
+  border: 1px dashed var(--edge);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+}
+
+/* ---------- Header ---------- */
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(12, 22, 41, 0.8);
+  border-bottom: 1px solid var(--edge);
+  padding: 12px 20px;
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left .brand {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.header-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.signed-in-as {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-right: 6px;
+}
+
+@media (max-width: 600px) {
+  .signed-in-as {
+    display: none;
+  }
+}
+
+/* ---------- Normalize anchor buttons to match <button> ---------- */
+
+/* Base button look for both <button> and <a class="btn"> */
+.btn,
+button {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--pine);
+  background: linear-gradient(180deg, #27d496, #18b575);
+  color: #04121a;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none; /* kill default link underline */
+}
+
+/* Hover brightness */
+.btn:hover,
+button:hover { filter: brightness(1.05); }
+
+/* Secondary variant */
+.btn.secondary,
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--edge);
+}
+
+/* Danger variant */
+.btn.danger,
+button.danger {
+  background: linear-gradient(180deg, #ff8ea0, #ff5a74);
+  border-color: #ff5a74;
+  color: #270007;
+}
+
+/* Link-style button (inline text link that matches your palette) */
+.btn.link,
+button.link {
+  background: transparent;
+  border: none;
+  color: var(--pine);
+  padding: 0;
+}
+
+/* Generic anchor defaults (when not using .btn) */
+a {
+  color: var(--pine);
+  text-decoration: underline dotted;
+}
+a:hover { filter: brightness(1.05); }
+
+/* ---------- Button hover contrast effects ---------- */
+
+/* Primary (green gradient) hover: deepen top color + lift text contrast */
+.btn:hover,
+button:hover {
+  filter: none; /* reset previous brightness */
+  background: linear-gradient(180deg, #2fffae, #17a86a);
+  color: #02120a;
+  box-shadow: 0 0 8px rgba(39, 212, 150, 0.4);
+  transition: all 0.15s ease-in-out;
+}
+
+/* Secondary (transparent) hover: subtle tint + border highlight */
+.btn.secondary:hover,
+button.secondary:hover {
+  background: rgba(29,191,126,0.08);
+  border-color: var(--pine);
+  color: var(--text);
+  box-shadow: 0 0 6px rgba(29,191,126,0.25);
+}
+
+/* Danger hover: stronger red gradient */
+.btn.danger:hover,
+button.danger:hover {
+  background: linear-gradient(180deg, #ff6078, #e84460);
+  border-color: #ff6078;
+  box-shadow: 0 0 8px rgba(255,90,116,0.35);
+}
+
+/* Link buttons: lighten pine tone on hover */
+.btn.link:hover,
+button.link:hover {
+  color: #40ffb5;
+  text-decoration: underline;
+  filter: none;
+}
