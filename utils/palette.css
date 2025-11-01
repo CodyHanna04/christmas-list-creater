@@ -1,0 +1,14 @@
+:root{
+  --bg: #0b1220;         /* deep night */
+  --card: #101a2e;       /* deep blue card */
+  --edge: #1c2a47;       /* edge line */
+  --text: #e9f3ff;       /* icy text */
+  --muted: #a8c1da;
+
+  --pine: #1dbf7e;       /* modern pine */
+  --cran: #ff5a74;       /* holly berry */
+  --gold: #ffd166;       /* warm gold */
+  --snow: #0f1629;       /* page bg */
+  --frost: rgba(255,255,255,0.06);
+  --glow: 0 10px 30px rgba(31, 255, 173, .15);
+}

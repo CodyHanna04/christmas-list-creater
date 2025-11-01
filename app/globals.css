@@ -1,42 +1,236 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Base */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: radial-gradient(1000px 600px at 20% -10%, #14304b 0%, transparent 60%),
+              radial-gradient(1000px 700px at 120% 10%, #1b2a44 0%, transparent 55%),
+              var(--snow);
+  color: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Layout */
+.container{max-width:1100px;margin:28px auto;padding:0 20px}
+.center{max-width:520px;margin:10vh auto;padding:24px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.row{display:flex;gap:10px;align-items:center}
+.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.muted{color:var(--muted)}
+.or{margin:12px 0;text-align:center;color:var(--muted)}
+
+/* Cards */
+.item-card,.panel,.auth-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--glow);
+  backdrop-filter: blur(6px);
+}
+.stack{display:flex;flex-direction:column;gap:10px}
+.panel{margin-bottom:18px}
+
+/* Header */
+.public-header{
+  display:flex;align-items:end;justify-content:space-between;
+  padding-bottom:12px;border-bottom:1px dashed var(--edge)
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+/* Inputs & Buttons */
+label{display:block;margin:10px 0 6px}
+input,select,textarea{
+  width:100%;padding:12px 14px;border-radius:12px;
+  border:1px solid var(--edge);background:#0c1629;color:var(--text);
+  outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--pine);box-shadow:0 0 0 3px rgba(29,191,126,.18)}
+button{
+  padding:10px 14px;border-radius:12px;border:1px solid var(--pine);
+  background:linear-gradient(180deg,#27d496,#18b575);color:#04121a;font-weight:600;cursor:pointer;
+}
+button:hover{filter:brightness(1.05)}
+button.secondary{
+  background:transparent;color:var(--text);border-color:var(--edge)
+}
+button.danger{
+  background:linear-gradient(180deg,#ff8ea0,#ff5a74);border-color:#ff5a74;color:#270007
+}
+button.link{background:transparent;border:none;color:var(--pine);padding:0}
+
+/* Badges & Chips */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+  background:rgba(29,191,126,0.08);border:1px solid var(--pine);color:var(--text)
+}
+.chip{padding:4px 10px;border-radius:999px;font-size:12px;text-transform:capitalize;border:1px solid var(--edge)}
+.chip-available{background:rgba(29,191,126,.08);border-color:var(--pine);color:#a9ffd9}
+.chip-reserved{background:rgba(255,209,102,.1);border-color:var(--gold);color:#ffe7a8}
+.chip-purchased{background:rgba(255,90,116,.12);border-color:var(--cran);color:#ffc2cc}
+
+/* Modal */
+.modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:50}
+.modal-card{
+  width:92%;max-width:440px;background:var(--card);border:1px solid var(--edge);
+  border-radius:16px;padding:20px;box-shadow:var(--glow)
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Links list in card */
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+/* Owner header */
+.owner-header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+
+/* Fancy title */
+h1{
+  font-size: clamp(28px, 3vw, 40px);
+  background: linear-gradient(90deg,#e9f3ff, #a8ffe0 60%, #ffd166);
+  -webkit-background-clip:text;background-clip:text;color:transparent
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* Larger modal for editor */
+/* Responsive modal sizing */
+.modal{
+  position: fixed; inset: 0; display: grid; place-items: center;
+  background: rgba(0,0,0,.45); z-index: 50;
+
+  /* keep some background visible on all sides */
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  overscroll-behavior: contain;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.modal-card.modal-responsive{
+  width: 100%;
+  /* never full width; always leave gutters */
+  max-width: min(860px, calc(100vw - 48px));
+  /* never full height; leave top/bottom space for background */
+  max-height: min(92vh, 900px);
+
+  display: flex; flex-direction: column;
+  overflow: hidden; /* header/foot fixed, body scrolls */
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Larger cards inherit your existing modal-card look */
+.modal-head, .modal-foot{
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.modal-head{ padding-bottom: 8px; border-bottom: 1px solid var(--edge); }
+.modal-foot{ padding-top: 10px; border-top: 1px solid var(--edge); justify-content: flex-end; }
+
+.modal-body{
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 12px 0; /* space between head/foot */
+}
+
+/* Make form grid adapt on smaller screens */
+@media (max-width: 560px){
+  .form-grid{ grid-template-columns: 1fr !important; }
+}
+
+/* Slightly roomier inputs inside modal */
+.modal-body input,
+.modal-body select{ margin-top: 4px; }
+
+.modal-card.modal-lg { max-width: 760px; }
+.modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px; }
+
+/* Roomier item management cards */
+.manage-grid {
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 22px;
+}
+.item-manage { display: flex; flex-direction: column; gap: 10px; }
+.item-actions { display:flex; gap:10px; justify-content:flex-end; }
+
+/* Give item card more breathing room */
+.item-card { padding: 20px; line-height: 1.35; }
+.item-meta > div { margin: 6px 0; }
+
+/* More vertical rhythm in forms */
+.spacious-grid { gap: 16px; }
+
+.item-card {
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 16px;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.item-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+.item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.item-name { font-size: 1.1rem; margin: 0; }
+
+.item-meta { font-size: 0.95rem; line-height: 1.4; }
+.item-meta > div { margin: 3px 0; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+.byline {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ---------- AUTH GATE SPACING FIX ---------- */
+
+.auth-card {
+  text-align: center;
+  padding: clamp(24px, 3vw, 36px);
+}
+
+.auth-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px; /* space between Google btn, OR, and EmailAuth form */
+  margin-top: 18px;
+}
+
+/* Ensures the EmailAuth inputs + buttons aren't cramped */
+.auth-form-wrapper {
+  width: 100%;
+}
+
+.auth-form-wrapper form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+/* Consistent gap inside EmailAuth */
+.auth-form-wrapper input {
+  padding: 12px 14px;
+}
+
+.auth-form-wrapper button {
+  margin-top: 6px;
+}
+
+/* Adds gentle spacing between "new here" text/links if you have them */
+.auth-form-wrapper .auth-options {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }

@@ -1,66 +1,58 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+// app/page.js
+"use client";
+import { useState } from "react";
+import AuthGate from "@/components/AuthGate";
+import { auth } from "@/services/firebase";
+import { createList } from "@/services/lists";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <AuthGate>
+      <CreateListForm />
+    </AuthGate>
+  );
+}
+
+function CreateListForm() {
+  const [title, setTitle] = useState("My Christmas List");
+  const [url, setUrl] = useState("my-2025-list");
+  const [creating, setCreating] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  async function onCreate() {
+    setMsg("");
+    setCreating(true);
+    try {
+      await createList({
+        ownerUid: auth.currentUser.uid,
+        title: title.trim(),
+        url: url.trim().toLowerCase(),
+      });
+      setMsg("Created! Opening your dashboard…");
+      window.location.href = `/l/${url}/manage`;
+    } catch (e) {
+      setMsg(e.message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <div className="container">
+      <h1>Create your Christmas List</h1>
+      <label>List title</label>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} />
+
+      <label>Public URL path</label>
+      <div className="row">
+        <span className="muted">/l/</span>
+        <input value={url} onChange={(e) => setUrl(e.target.value)} />
+      </div>
+
+      <button onClick={onCreate} disabled={creating || !title || !url}>
+        {creating ? "Creating…" : "Create List"}
+      </button>
+      {msg && <div className="muted">{msg}</div>}
     </div>
   );
 }
