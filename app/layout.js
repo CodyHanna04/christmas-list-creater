@@ -2,6 +2,7 @@
 import "./globals.css";
 import "@/utils/palette.css";
 import Header from "@/components/Header";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata = {
   title: "Christmas List",
@@ -14,6 +15,7 @@ export default function RootLayout({ children }) {
       <body>
         <Header />
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
