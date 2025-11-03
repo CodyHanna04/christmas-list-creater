@@ -4,6 +4,7 @@ import "@/utils/palette.css";
 import Header from "@/components/Header";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Christmas List",
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
       <body>
         <Header />
         {children}
+        <Footer />
         <SpeedInsights />
         <Analytics />
       </body>

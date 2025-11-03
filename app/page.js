@@ -1,20 +1,16 @@
 // app/page.js
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import AuthGate from "@/components/AuthGate";
-import { auth } from "@/services/firebase";
-import { db } from "@/services/firebase";
+import { auth, db } from "@/services/firebase";
 import { createList } from "@/services/lists";
 import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  doc,
-  collection as subcollection,
-  orderBy,
-  limit,
+  collection, query, where, onSnapshot, doc,
+  collection as subcollection, orderBy, limit
 } from "firebase/firestore";
+import {
+  getRecents, getBookmarks, removeBookmark, addBookmark
+} from "@/lib/recents";
 
 export default function Home() {
   return (
@@ -26,10 +22,53 @@ export default function Home() {
 
 function DashboardHome() {
   const [uid, setUid] = useState(null);
+  const [recents, setRecents] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
+
+  const refreshLocal = () => {
+    setRecents(getRecents());
+    setBookmarks(getBookmarks());
+  };
 
   useEffect(() => {
     setUid(auth.currentUser?.uid ?? null);
+    refreshLocal();
+
+    // refresh when public page emits custom events
+    const onRecents = () => setRecents(getRecents());
+    const onBookmarks = () => setBookmarks(getBookmarks());
+    window.addEventListener("cc:recents-updated", onRecents);
+    window.addEventListener("cc:bookmarks-updated", onBookmarks);
+
+    // refresh when tab becomes visible (navigate back)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshLocal();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    // cross-tab/localStorage updates
+    const onStorage = (e) => {
+      if (e.key === "cc_recent_lists") setRecents(getRecents());
+      if (e.key === "cc_bookmarks") setBookmarks(getBookmarks());
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("cc:recents-updated", onRecents);
+      window.removeEventListener("cc:bookmarks-updated", onBookmarks);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
+
+  function onRemoveBookmark(url) {
+    const next = removeBookmark(url);
+    setBookmarks(next);
+  }
+  function onAddBookmark(url, title) {
+    addBookmark({ url, title });
+    setBookmarks(getBookmarks());
+  }
 
   return (
     <div className="container">
@@ -38,7 +77,23 @@ function DashboardHome() {
         <p className="muted">Preview your lists below or create a new one. 🎄</p>
       </header>
 
-      <div className="dashboard-grid">
+      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <section className="panel">
+          <h3 style={{ marginTop: 0 }}>Recently viewed</h3>
+          <RecentLists recents={recents} />
+        </section>
+
+        <section className="panel">
+          <h3 style={{ marginTop: 0 }}>Bookmarks</h3>
+          <Bookmarks
+            bookmarks={bookmarks}
+            onRemove={onRemoveBookmark}
+            onAdd={onAddBookmark}
+          />
+        </section>
+      </div>
+
+      <div className="dashboard-grid" style={{ marginTop: 18 }}>
         <section className="panel">
           <UserLists uid={uid} />
         </section>
@@ -51,11 +106,72 @@ function DashboardHome() {
   );
 }
 
+function RecentLists({ recents }) {
+  if (!recents?.length) return <div className="muted">No recent lists yet.</div>;
+  return (
+    <div className="stack">
+      {recents.map((r) => (
+        <div key={r.url} className="row" style={{ justifyContent: "space-between" }}>
+          <div className="row" style={{ gap: 8 }}>
+            <span className="chip">/l/{r.url}</span>
+            <span>{r.title}</span>
+          </div>
+          <a className="btn secondary" href={`/l/${r.url}`} target="_blank" rel="noreferrer">
+            Open
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Bookmarks({ bookmarks, onRemove, onAdd }) {
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState("");
+
+  function add(e) {
+    e.preventDefault();
+    const clean = url.trim().replace(/^\/?l\//, "");
+    if (!clean) return;
+    onAdd(clean, title.trim() || clean);
+    setUrl(""); setTitle("");
+  }
+
+  return (
+    <div className="stack">
+      <form onSubmit={add} className="row wrap" style={{ gap: 10 }}>
+        <span className="muted">/l/</span>
+        <input className="grow" placeholder="public-url" value={url} onChange={(e)=>setUrl(e.target.value)} />
+        <input className="grow" placeholder="Optional title" value={title} onChange={(e)=>setTitle(e.target.value)} />
+        <button type="submit">Bookmark</button>
+      </form>
+
+      {!bookmarks?.length && <div className="muted">No bookmarks yet.</div>}
+
+      {!!bookmarks?.length && (
+        <div className="stack">
+          {bookmarks.map((b) => (
+            <div key={b.url} className="row" style={{ justifyContent: "space-between" }}>
+              <div className="row" style={{ gap: 8 }}>
+                <span className="chip">/l/{b.url}</span>
+                <span>{b.title}</span>
+              </div>
+              <div className="row" style={{ gap: 8 }}>
+                <a className="btn secondary" href={`/l/${b.url}`} target="_blank" rel="noreferrer">Open</a>
+                <button className="btn danger" type="button" onClick={() => onRemove(b.url)}>Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UserLists({ uid }) {
   const [lists, setLists] = useState([]);
-  const [previews, setPreviews] = useState({}); // { [listId]: items[] }
+  const [previews, setPreviews] = useState({});
 
-  // Subscribe to user's lists
   useEffect(() => {
     if (!uid) return;
     const qLists = query(collection(db, "lists"), where("ownerUid", "==", uid));
@@ -66,18 +182,13 @@ function UserLists({ uid }) {
     return () => unsub();
   }, [uid]);
 
-  // For each list, subscribe to up to 3 items for preview
   useEffect(() => {
     const unsubs = [];
-
     lists.forEach((lst) => {
       const itemsRef = subcollection(doc(db, "lists", lst.id), "items");
-      // Prefer most-recently updated or, as a fallback, name order
-      const qItems =
-        lst?.updatedAt
-          ? query(itemsRef, orderBy("updatedAt", "desc"), limit(3))
-          : query(itemsRef, orderBy("name"), limit(3));
-
+      const qItems = lst?.updatedAt
+        ? query(itemsRef, orderBy("updatedAt", "desc"), limit(3))
+        : query(itemsRef, orderBy("name"), limit(3));
       const u = onSnapshot(qItems, (ss) => {
         setPreviews((prev) => ({
           ...prev,
@@ -86,13 +197,10 @@ function UserLists({ uid }) {
       });
       unsubs.push(u);
     });
-
     return () => unsubs.forEach((fn) => fn && fn());
   }, [lists]);
 
-  if (!uid) {
-    return <div className="muted">Loading your lists…</div>;
-  }
+  if (!uid) return <div className="muted">Loading your lists…</div>;
 
   if (!lists.length) {
     return (
@@ -106,53 +214,40 @@ function UserLists({ uid }) {
   return (
     <div className="list-grid">
       {lists.map((lst) => (
-        <ListCard
-          key={lst.id}
-          list={lst}
-          previewItems={previews[lst.id] || []}
-        />
+        <ListCard key={lst.id} list={lst} previewItems={previews[lst.id] || []} />
       ))}
     </div>
   );
 }
 
 function ListCard({ list, previewItems }) {
+  const url = list.slug || list.url;
   return (
     <article className="list-card">
       <div className="list-head">
         <h3 className="list-title">{list.title || "Untitled list"}</h3>
-        <div className="list-slug muted">/l/{list.slug || list.url}</div>
+        <div className="list-slug muted">/l/{url}</div>
       </div>
 
-      {!!previewItems.length && (
+      {!!previewItems.length ? (
         <div className="preview-items">
           {previewItems.map((it) => (
             <div key={it.id} className={`preview-row status-${it.status}`}>
-              <span className={`chip chip-${it.status || "available"}`}>
-                {it.status || "available"}
-              </span>
+              <span className={`chip chip-${it.status || "available"}`}>{it.status || "available"}</span>
               <span className="preview-name">{it.name}</span>
               {typeof it.price === "number" && (
-                <span className="preview-price">
-                  {formatPrice(it.price, it.currency)}
-                </span>
+                <span className="preview-price">{formatPrice(it.price, it.currency)}</span>
               )}
             </div>
           ))}
         </div>
-      )}
-
-      {!previewItems.length && (
+      ) : (
         <div className="muted">No items yet—open the dashboard to add some.</div>
       )}
 
       <div className="list-actions">
-        <a className="btn secondary" href={`/l/${list.slug || list.url}`} target="_blank" rel="noreferrer">
-          View Public Page
-        </a>
-        <a className="btn" href={`/l/${list.slug || list.url}/manage`}>
-          Open Dashboard
-        </a>
+        <a className="btn secondary" href={`/l/${url}`} target="_blank" rel="noreferrer">View Public Page</a>
+        <a className="btn" href={`/l/${url}/manage`}>Open Dashboard</a>
       </div>
     </article>
   );
@@ -211,9 +306,6 @@ function CreateListForm() {
 }
 
 function formatPrice(n, currency = "USD") {
-  try {
-    return n.toLocaleString(undefined, { style: "currency", currency });
-  } catch {
-    return `$${Number(n).toFixed(2)}`;
-  }
+  try { return n.toLocaleString(undefined, { style: "currency", currency }); }
+  catch { return `$${Number(n).toFixed(2)}`; }
 }

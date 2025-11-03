@@ -140,7 +140,7 @@ export default function ItemCard({ listId, item, me = {}, editable = false, onEd
         {/* Hint if they can't act yet */}
         {!meReady && status === "available" && (
           <span className="muted" style={{ marginLeft: "auto" }}>
-            Enter your name to reserve
+            Sign in to reserve
           </span>
         )}
 
